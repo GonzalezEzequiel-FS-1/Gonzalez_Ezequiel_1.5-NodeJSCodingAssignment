@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const routes = require("../routes/");
+const routes = require("./routes");
 
 
 `localhost:3001/api/`
-router.get("/test", (req, res)=>{
+router.get("/", (req, res)=>{
     res
     .status(200)
     .json(
@@ -12,7 +12,6 @@ router.get("/test", (req, res)=>{
             success:true,
             message: "Testing server works"
         }
-
     );
 });
 router.use("/", routes);
