@@ -2,10 +2,11 @@ const getPkmn = require("./getPkmn");
 const fs = require("fs");
 const readArray = require("./pokedex");
 const path = require("path");
+const updateFile = require("./updateFile")
 
-const selectedPkmn = getPkmn(25, "id")
-const indexToDelete = parseInt(selectedPkmn.index);
-const pokemonToDelete = selectedPkmn.pokemon;
+// const selectedPkmn = getPkmn(25, "id")
+// const indexToDelete = parseInt(selectedPkmn.index);
+//const pokemonToDelete = selectedPkmn.pokemon;
 
 
 /*Brainstorming:
@@ -15,16 +16,18 @@ const pokemonToDelete = selectedPkmn.pokemon;
     4- Create a new array without the selected pokemon splice???, filter??? IDK
     5- Return the array
 */
-const pokeDelete = async (indexToDelete) => {
+const pokeDelete = async (id) => {
+    const selectedPkmn = getPkmn(id, "id")
+    indexToDelete = parseInt(selectedPkmn.index);
     try {
         const pokedex = await readArray();
         pokedex.splice(indexToDelete, 1);
-        console.log(pokedex)
-        return pokedex;
+        const newPokedex = Array.from(pokedex)
+        updateFile(newPokedex)
     } catch (error) {
         console.error(`There was a problem deleting the pokemon \n ${error}`)
     }
 };
-pokeDelete();
+pokeDelete(25);
 
 module.exports = pokeDelete;

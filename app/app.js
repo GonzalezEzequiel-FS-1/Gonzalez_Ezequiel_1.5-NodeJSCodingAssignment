@@ -1,8 +1,8 @@
 const express = require("express");
 const morgan = require("morgan");
-const path = require("path");
 const app = express();
 const routes = require("./routes");
+
 
 app.use(morgan("dev"));
 app.use(express.json());

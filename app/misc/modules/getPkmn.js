@@ -56,7 +56,7 @@ const getPkmn = (userSelection, criteria) => {
     // Return an object containing both the selected Pokémon and its index
     //For Testing Purposes
     //results = [{selectedIndex, selectedPkmn}]
-    // console.log(selectedIndex, selectedPkmn)
+    //console.log(selectedIndex, selectedPkmn)
     //console.log(results)
     return {
         index: selectedIndex,

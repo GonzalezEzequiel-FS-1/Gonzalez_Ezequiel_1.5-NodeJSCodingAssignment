@@ -3,21 +3,25 @@ const router = express.Router();
 const getPkmn = require("../misc/modules/getPkmn");
 const fs = require("fs");
 const path = require("path");
-const readArray = require("../misc/modules/pokedex")
+const readArray = require("../misc/modules/pokedex");
+const editPkmn = require("../misc/modules/editPkmn");
+const updateFile = require("../misc/modules/updateFile");
+const pokeDelete = require("../misc/modules/pokeDelete");
 let selectedPokemon;
 
 //Get all
-router.get("/", async (req, res)=>{
-    
+router.get("/", async (req, res) => {
+
     const pokedex = await readArray();
     res
         .status(200)
         .json({
-            success:true,
-            message:"Complete Pokedex",
-            pokedex:pokedex
+            success: true,
+            message: "Complete Pokedex",
+            pokedex: pokedex
         })
 })
+
 //Searching by ID
 router.get("/search/id/:id", (req, res) => {
     const id = req.params.id
@@ -40,6 +44,7 @@ router.get("/search/id/:id", (req, res) => {
     };
 
 });
+
 // Searching by type
 router.get("/search/type/:type", (req, res) => {
     const type = req.params.type;
@@ -108,30 +113,33 @@ router.get("/search/weakness/:weakness", (req, res) => {
 });
 
 //delete by ID it could be modified as search was but will make the code waaaay to long
-router.get("/delete/id/:id", async (req, res) => {
-    const pokemonId = parseInt(req.params.id);
-    const selectedPkmn = getPkmn(pokemonId, "id");
-    if (!selectedPkmn) {
-        return res.status(404).send("Pokemon not found");
-    }
-    // Delete the Pokémon from the Pokédex
-    try {
-        const pokedex = await readArray();
-        const indexToDelete = pokedex.findIndex(pokemon => pokemon.id === pokemonId);
-        if (indexToDelete < -1 || indexToDelete == NaN) {
-            return res.status(404).send("Who are you looking for, MissingNo?");
-        }
+router.delete("/delete/id/:id", async (req, res) => {
+    const id = req.params.id;
+    pokeDelete(id)
 
-        pokedex.splice(indexToDelete, 1);
-        console.log(`Deleted Pokemon with ID ${pokemonId}`);
-        const newPokedex = Array.from(pokedex)
-        fs.writeFileSync(path.join(__dirname, "../misc/jsonFiles/pokedex.json"), JSON.stringify(newPokedex, null, 2));
+    // const pokemonId = parseInt(req.params.id);
+    // const selectedPkmn = getPkmn(pokemonId, "id");
+    // if (!selectedPkmn) {
+    //     return res.status(404).send("Pokemon not found");
+    // }
+    // // Delete the Pokémon from the Pokédex
+    // try {
+    //     const pokedex = await readArray();
+    //     const indexToDelete = pokedex.findIndex(pokemon => pokemon.id === pokemonId);
+    //     if (indexToDelete < -1 || indexToDelete == NaN) {
+    //         return res.status(404).send("Who are you looking for, MissingNo?");
+    //     }
 
-        return res.status(200).json(newPokedex);
-    } catch (error) {
-        console.error(`There was a problem deleting the pokemon \n ${error}`);
-        return res.status(500).send("Internal Server Error");
-    }
+    //     pokedex.splice(indexToDelete, 1);
+    //     console.log(`Deleted Pokemon with ID ${pokemonId}`);
+    //     const newPokedex = Array.from(pokedex)
+    //     //fs.writeFileSync(path.join(__dirname, "../misc/jsonFiles/pokedex.json"), JSON.stringify(newPokedex, null, 2));
+    //     updateFile(newPokedex)
+    //     return res.status(200).json(newPokedex);
+    // } catch (error) {
+    //     console.error(`There was a problem deleting the pokemon \n ${error}`);
+    //     return res.status(500).send("Internal Server Error");
+    // }
 });
 
 //POST
@@ -150,7 +158,7 @@ router.post("/create", async (req, res) => {
     };
     const requiredFields = ['id', 'num', 'name', 'img', 'type', 'height', 'weight', 'weaknesses'];
     const missingFields = requiredFields.filter(field => !newPokemon[field]);
-
+    
     if (missingFields.length > 0) {
         return res.status(400).json({
             error: `Please make sure to include the following data: ${missingFields.join(', ')}`
@@ -160,7 +168,8 @@ router.post("/create", async (req, res) => {
         const pokedex = await readArray();
         pokedex.push(newPokemon);
         const newPokedex = Array.from(pokedex)
-        fs.writeFileSync(path.join(__dirname, "../misc/jsonFiles/pokedex.json"), JSON.stringify(pokedex, null, 2));
+        //fs.writeFileSync(path.join(__dirname, "../misc/jsonFiles/pokedex.json"), JSON.stringify(pokedex, null, 2));
+        updateFile(pokedex)
         return res
             .status(200)
             .json({
@@ -194,8 +203,48 @@ router.post("/create", async (req, res) => {
 }
     */
 })
-
-
-
+//PUT
+router.put("/edit/:id", async (req, res) => {
+    const newPokemon = {
+        id: parseInt(req.params.id, 10) || null,
+        num: req.body.num || null,
+        name: req.body.name || null,
+        img: req.body.img || null,
+        type: req.body.type || [],
+        height: req.body.height || null,
+        weight: req.body.weight || null,
+        weaknesses: req.body.weaknesses || [],
+        prev_evolution: req.body.prev_evolution || [],
+        next_evolution: req.body.next_evolution || []
+    };
+    try {
+        // input order
+        //       id, name, img, type, height, weight, weaknesses, prev_evolution, next_evolution)
+        const editedPkmn = await editPkmn(newPokemon.id, newPokemon.name, newPokemon.img, newPokemon.type, newPokemon.height, newPokemon.weight, newPokemon.weaknesses, newPokemon.prev_evolution, newPokemon.next_evolution)
+        if (!editedPkmn) {
+            return res
+                .status(404)
+                .json({
+                    error: 'Pokémon not found or not edited'
+                });
+        } else {
+            res
+                .status(200)
+                .json({
+                    message: 'Pokémon updated successfully',
+                    editedPkmn
+                });
+        }
+    } catch (error) {
+        console.error(error);
+        res
+        console.error(error);
+        res
+        .status(500)
+        .json({
+            error: 'An error occurred while editing the Pokémon'
+        })
+    };
+});
 
 module.exports = router;

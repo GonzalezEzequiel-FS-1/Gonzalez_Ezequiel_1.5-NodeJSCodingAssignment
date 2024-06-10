@@ -2,8 +2,7 @@ const express = require("express");
 const router = express.Router();
 const routes = require("./routes");
 
-
-`localhost:3001/api/`
+// `localhost:3001/api/`
 router.get("/", (req, res)=>{
     res
     .status(200)
