@@ -1,15 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const getPkmn = require("../misc/modules/getPkmn");
-const fs = require("fs");
-const path = require("path");
+// const fs = require("fs");
+// const path = require("path");
 const readArray = require("../misc/modules/pokedex");
 const editPkmn = require("../misc/modules/editPkmn");
 const updateFile = require("../misc/modules/updateFile");
 const pokeDelete = require("../misc/modules/pokeDelete");
 let selectedPokemon;
 
-//Get all
+//Get all (Works)
 router.get("/", async (req, res) => {
 
     const pokedex = await readArray();
@@ -22,7 +22,7 @@ router.get("/", async (req, res) => {
         })
 })
 
-//Searching by ID
+//Searching by ID (Works, all get by... works)
 router.get("/search/id/:id", (req, res) => {
     const id = req.params.id
     selectedPokemon = getPkmn(id, "id");
@@ -113,36 +113,36 @@ router.get("/search/weakness/:weakness", (req, res) => {
 });
 
 //delete by ID it could be modified as search was but will make the code waaaay to long
+//Works
 router.delete("/delete/id/:id", async (req, res) => {
     const id = req.params.id;
-    pokeDelete(id)
+    try {
+        if (!id) {
+            res
+                .status(404)
+                .json({
+                    success: false,
+                    error: "Please Submit a Pokémon ID"
+                })
+        } else {
+            const deletedPokemon = getPkmn(id, "id")
+            res
+                .status(200)
+                .json({
+                    success: true,
+                    Deleted_Pokemon: deletedPokemon,
 
-    // const pokemonId = parseInt(req.params.id);
-    // const selectedPkmn = getPkmn(pokemonId, "id");
-    // if (!selectedPkmn) {
-    //     return res.status(404).send("Pokemon not found");
-    // }
-    // // Delete the Pokémon from the Pokédex
-    // try {
-    //     const pokedex = await readArray();
-    //     const indexToDelete = pokedex.findIndex(pokemon => pokemon.id === pokemonId);
-    //     if (indexToDelete < -1 || indexToDelete == NaN) {
-    //         return res.status(404).send("Who are you looking for, MissingNo?");
-    //     }
-
-    //     pokedex.splice(indexToDelete, 1);
-    //     console.log(`Deleted Pokemon with ID ${pokemonId}`);
-    //     const newPokedex = Array.from(pokedex)
-    //     //fs.writeFileSync(path.join(__dirname, "../misc/jsonFiles/pokedex.json"), JSON.stringify(newPokedex, null, 2));
-    //     updateFile(newPokedex)
-    //     return res.status(200).json(newPokedex);
-    // } catch (error) {
-    //     console.error(`There was a problem deleting the pokemon \n ${error}`);
-    //     return res.status(500).send("Internal Server Error");
-    // }
+                })
+            pokeDelete(id)
+        }
+    } catch (error) {
+        res
+            .status(500)
+            .send("Internal Server Error");
+    }
 });
 
-//POST
+//POST (Works)
 router.post("/create", async (req, res) => {
     const newPokemon = {
         id: req.body.id || null,
@@ -158,7 +158,6 @@ router.post("/create", async (req, res) => {
     };
     const requiredFields = ['id', 'num', 'name', 'img', 'type', 'height', 'weight', 'weaknesses'];
     const missingFields = requiredFields.filter(field => !newPokemon[field]);
-    
     if (missingFields.length > 0) {
         return res.status(400).json({
             error: `Please make sure to include the following data: ${missingFields.join(', ')}`
@@ -184,26 +183,26 @@ router.post("/create", async (req, res) => {
     }
     /*
     here is a sample of the data to provide:
-    {
-        "id": 152,
-        "num": "152",
-        "name": "Flamzard",
-        "img": "https://example.com/flamzard.png",
-        "type": ["Fire", "Flying"],
-        "height": "1.5 m",
-        "weight": "40.0 kg",
-        "weaknesses": ["Water", "Electric", "Rock"],
-        "prev_evolution": [],
-        "next_evolution": [
-            {
-            "num": "153",
-            "name": "Infernozard"
-            }
-        ]
+{
+    "id": 1523,
+    "num": "153",
+    "name": "Flamzard",
+    "img": "https://example.com/flamzard.png",
+    "type": ["Fire", "Flying"],
+    "height": "1.5 m",
+    "weight": "40.0 kg",
+    "weaknesses": ["Water", "Electric", "Rock"],
+    "prev_evolution": [],
+    "next_evolution": [
+        {
+        "num": "153",
+        "name": "Infernozard"
+        }
+    ]
 }
     */
 })
-//PUT
+//PUT (Works)
 router.put("/edit/:id", async (req, res) => {
     const newPokemon = {
         id: parseInt(req.params.id, 10) || null,
@@ -240,10 +239,10 @@ router.put("/edit/:id", async (req, res) => {
         res
         console.error(error);
         res
-        .status(500)
-        .json({
-            error: 'An error occurred while editing the Pokémon'
-        })
+            .status(500)
+            .json({
+                error: 'An error occurred while editing the Pokémon'
+            })
     };
 });
 

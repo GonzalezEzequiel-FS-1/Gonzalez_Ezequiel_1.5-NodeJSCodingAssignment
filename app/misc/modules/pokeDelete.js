@@ -28,6 +28,6 @@ const pokeDelete = async (id) => {
         console.error(`There was a problem deleting the pokemon \n ${error}`)
     }
 };
-pokeDelete(25);
+
 
 module.exports = pokeDelete;
